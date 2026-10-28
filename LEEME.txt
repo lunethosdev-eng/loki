@@ -1,0 +1,25 @@
+Pokke fix pack — copia sobre la raíz de loki (mismas rutas).
+
+1) ICONO
+   - Todos los mipmap-anydpi (launcher + glass aliases) apuntan al logo Pokke
+   - BORRA si existe: app/src/main/res/drawable/ic_launcher_foreground.xml
+     (era el vector de BitChord)
+
+2) BUILD TELÉFONO
+   - android.yml ahora hace :app:assembleProdRelease (no depende de wear)
+   - Wear es opcional (continue-on-error)
+   - Si el keystore de secrets sigue malo, wear falla pero el APK del teléfono se sube
+
+3) FUENTES
+   - UkiyoSource.kt + SourceRegistry: Ukiyo se siembra como fuente principal
+   - YouTube sigue OFF por defecto; el usuario lo puede ACTIVAR en Settings → Sources
+   - Si ya tenías datos viejos de sources, desinstala la app o borra datos una vez
+     para que tome el seed nuevo (prefs pokke_sources)
+
+4) TV
+   - APK de TV = workflow separado "TV" en Actions, no este log
+
+Tras copiar:
+  git add -A
+  git commit -m "Pokke: icons, Ukiyo default source, phone CI without wear blocker"
+  git push

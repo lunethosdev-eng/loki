@@ -37,20 +37,26 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Build Signed Prod Release APK
-      run: ./gradlew assembleProdRelease
+    # Phone APK only — do not fail the whole job if Wear packaging breaks (keystore, etc.)
+    - name: Build Signed Prod Release APK (phone)
+      run: ./gradlew :app:assembleProdRelease
 
-    - name: Upload APK Artifact
+    - name: Upload phone APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: bitchord-prod-release-signed
+        name: pokke-prod-release-signed
         path: app/build/outputs/apk/prod/release/*.apk
+        if-no-files-found: warn
 
-    # Built by the same assembleProdRelease, with the same key. The watch app
-    # only pairs with a phone app signed by the same key, so a prod watch APK
-    # for these phone builds can only come from here, never a local build.
+    - name: Build Wear OS APK (optional)
+      continue-on-error: true
+      run: ./gradlew :wearos:assembleProdRelease
+
     - name: Upload Wear OS APK Artifact
+      if: success() || failure()
+      continue-on-error: true
       uses: actions/upload-artifact@v4
       with:
-        name: bitchord-wear-prod-release-signed
+        name: pokke-wear-prod-release-signed
         path: wearos/build/outputs/apk/prod/release/*.apk
+        if-no-files-found: ignore

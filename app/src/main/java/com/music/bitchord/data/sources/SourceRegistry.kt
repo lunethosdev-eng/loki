@@ -148,13 +148,18 @@ object SourceRegistry {
             .filter { kind -> stored.none { it.kind == kind } }
             .map { SourceConfig(kind = it, enabled = false) }
 
+        // Seed Ukiyo as primary catalogue when missing.
+        val withUkiyo = if (seeded.none { UkiyoSource.isUkiyoConfig(it) }) {
+            listOf(UkiyoSource.defaultConfig()) + seeded
+        } else seeded
+
         // The retired built-in module is removed, while a custom module entered
         // by the user is preserved.
-        return seeded
+        return withUkiyo
             .filterNot { it.kind == SourceKind.MODULE }
             .map { config ->
                 when {
-                    // Do NOT force YouTube back on — user / Pokke default can keep it off.
+                    // YouTube: never force back on (user enables in Settings → Sources).
                     config.kind == SourceKind.JIOSAAVN && forceJioSaavnOff -> config.copy(enabled = false)
                     else -> config
                 }
@@ -456,7 +461,7 @@ object SourceRegistry {
     suspend fun probeCandidate(config: SourceConfig): SourceHealth = build(config).health()
 
     private fun build(config: SourceConfig): MusicSource = when (config.kind) {
-        SourceKind.ADDON -> AddonSource(config)
+        SourceKind.ADDON -> if (UkiyoSource.isUkiyoConfig(config)) UkiyoSource(config) else AddonSource(config)
         // Same protocol, same implementation — the kinds differ only in rank.
         SourceKind.CUSTOM_MODULE -> ModuleSource(config)
         SourceKind.MODULE -> ModuleSource(config)
